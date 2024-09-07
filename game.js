@@ -59,38 +59,38 @@ function setup() {
     textSize(20);
     textAlign(CENTER, CENTER);
     circleColor = color(0, 150, 255);
-    
+
     profileX = 10;
     profileY = 10;
-    
+
     achievementsX = 10;
     achievementsY = 100;
-    
+
     popupWidth += 60;
     popupHeight += 60;
     popupX = (width - popupWidth) * 0.48;
     popupY = (height - popupHeight) / 2 - 50;
     popupTargetX = popupX;
     popupTargetY = popupY;
-    
+
     generateAchievements();
     updateScrollLimit();
 }
 
 function draw() {
     background(20);
-    
+
     drawPlayerProfile();
     drawScoreAboveProgressBar();
     drawLevelProgressBar();
-    
+
     if (isAnimating) {
         animateCircle();
     }
-    
+
     fill(circleColor);
     ellipse(width / 2, height / 2 + 50, circleSize, circleSize);
-    
+
     for (let i = particleList.length - 1; i >= 0; i--) {
         let p = particleList[i];
         p.update();
@@ -99,21 +99,21 @@ function draw() {
             particleList.splice(i, 1);
         }
     }
-    
+
     if (isBlocked) {
         drawBlockTimer();
     }
-    
+
     if (isPopupVisible) {
         drawPopup();
     }
-    
+
     if (isAchievementsPopupVisible) {
         drawAchievementsPopup();
         animatePopup();
         animateScroll();
     }
-    
+
     drawAchievementsButton();
     checkBlockStatus();
 }
@@ -127,34 +127,34 @@ function mousePressed() {
         totalPoints += 10;
         levelProgress = score / nextLevelScore;
         addParticles(width / 2, height / 2 + 50);
-        
+
         isAnimating = true;
         animationStage = 0;
-        
+
         if (score >= nextLevelScore) {
             level++;
             nextLevelScore *= 2;
             levelProgress = 0;
             levelUp();
         }
-        
+
         lastClickTime = currentTime;
         canClick = false;
     }
-    
+
     if (isMouseOverProfile()) {
         isPopupVisible = !isPopupVisible;
     }
-    
+
     if (isPopupVisible && isMouseOverButton((width - 250) / 2 + 150, (height - 320) / 2 - 50 + 280, 80, 30)) {
         isPopupVisible = false;
     }
-    
+
     if (isAchievementsPopupVisible && mouseX > popupX + popupWidth - 100 && mouseX < popupX + popupWidth - 20 && mouseY > popupY + popupHeight - 40 && mouseY < popupY + popupHeight - 20) {
         isAchievementsPopupVisible = false;
         animationAlpha = 0;
     }
-    
+
     if (mouseX > achievementsX && mouseX < achievementsX + profileWidth && mouseY > achievementsY && mouseY < achievementsY + profileHeight) {
         isAchievementsPopupVisible = true;
         scrollY = 0;
@@ -174,14 +174,14 @@ function mouseDragged() {
 
 function updateClickIntervals(currentTime) {
     let interval = currentTime - lastClickTime;
-    
+
     for (let i = 0; i < clickIntervals.length - 1; i++) {
         clickIntervals[i] = clickIntervals[i + 1];
     }
     clickIntervals[clickIntervals.length - 1] = interval;
-    
+
     let allEqual = clickIntervals.every((val, i, arr) => val === arr[0]);
-    
+
     if (allEqual) {
         isBlocked = true;
         blockStartTime = millis();
@@ -230,11 +230,11 @@ function drawLevelProgressBar() {
     let barHeight = 20;
     let xOffset = (width - barWidth) / 2;
     let yOffset = height / 2 - 50 - 30;
-    
+
     fill(100);
     noStroke();
     rect(xOffset, yOffset, barWidth, barHeight, 10);
-    
+
     fill(circleColor);
     rect(xOffset, yOffset, barWidth * levelProgress, barHeight, 10);
 }
@@ -249,11 +249,11 @@ function drawPlayerProfile() {
     fill(circleColor);
     noStroke();
     rect(profileX, profileY, profileWidth, profileHeight, 20);
-    
+
     fill(255);
     textSize(12);
     text("Игрок", profileX + profileWidth / 2, profileY + 20);
-    
+
     drawStar(profileX + profileWidth / 2, profileY + 50, 8, 16, 5);
 }
 
@@ -280,7 +280,7 @@ function drawPopup() {
 
     fill(circleColor);
     noStroke();
-    rect(popupX, popupY, popupWidth, popupHeight, 20);
+        rect(popupX, popupY, popupWidth, popupHeight, 20);
 
     fill(255);
     textSize(14);
@@ -349,7 +349,7 @@ function drawAchievementsPopup() {
     drawButton("Закрыть", popupX + popupWidth - 100, popupY + popupHeight - 40, 80, 20, animationAlpha);
 }
 
-function drawButton(label, x, y, w, h, alpha) {
+function drawButton(label, x, y, w, h, alpha = 255) {
     fill(circleColor, alpha);
     stroke(255, alpha);
     strokeWeight(2);

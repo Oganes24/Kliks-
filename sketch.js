@@ -1,281 +1,383 @@
 let score = 0;
+let totalScore = 0;  // Всего очков за все время
+let clicks = 0;
+let totalClicks = 0;  // Всего кликов за все время
+let victories = 0;  // Всего побед
+let totalBattles = 0;  // Всего битв
+let invitedFriends = 0;  // Всего приглашенных друзей
+let totalTONEarned = 0;  // Всего заработано TON
 let level = 1;
-let particles = 20;
-let particleList = [];
-let levelProgress = 0;
-let nextLevelScore = 1000;
-let circleSize = 150;
-let minSize = 130;
-let maxSize = 170;
-let animationSpeed = 5;
+let nextLevelScore = 1000;  // Очки для достижения следующего уровня
+let clickPower = 4;  // За один клик дается 4 очка
+let circleSize = 100;
+let circleX, circleY;
+let animationScale = 1;
 let isAnimating = false;
-let animationStage = 0;
-let circleColor;
-let profileWidth = 100;
-let profileHeight = 80;
-let profileX, profileY;
-let isPopupVisible = false;
-let totalClicks = 0;
-let totalPoints = 0;
-let coins = 100;
-let isAchievementsPopupVisible = false;
-let popupWidth = 300;
-let popupHeight = 200;
-let popupX, popupY;
-let achievementsList = [];
-let rewardsList = [];
+
+let profileWindowOpen = false;
+let achievementsWindowOpen = false;
+let leaderboardWindowOpen = false; // Окно для топа игроков
+
+let rewardGeneratedTime = 0;
+const rewardInterval = 12 * 60 * 60 * 1000; // 12 часов в миллисекундах для генерации наград
+
+let achievements = [];
+let leaderboard = []; // Топ-игроки будут генерироваться автоматически
+let scrollOffset = 0; // Прокрутка для списка игроков
+
+// Telegram API Token и Chat ID
+const TOKEN = '6614618999:AAGWioIuwEL1zNA9Z0m6ZLAbQv9g4Wgo2Mk';  // Токен бота
+const CHAT_ID = 'ваш_chat_id';  // Замените на ваш chat_id (получите через API Telegram)
+
+// Функция для отправки сообщений в Telegram через бота
+function sendTelegramMessage(message) {
+    const url = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
+
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            chat_id: CHAT_ID,
+            text: message
+        })
+    }).then(response => response.json())
+    .then(data => {
+        if (data.ok) {
+            console.log("Сообщение успешно отправлено в Telegram");
+        } else {
+            console.log("Ошибка отправки сообщения:", data.description);
+        }
+    }).catch(error => console.error("Ошибка:", error));
+}
+
+// Для анимации "+4"
+let animations = [];
 
 function setup() {
-    createCanvas(800, 600);  // Размер холста для Telegram Web
-    textSize(20);
+    createCanvas(windowWidth, windowHeight);
+    textSize(16);
     textAlign(CENTER, CENTER);
-    circleColor = color(0, 150, 255);
-    profileX = 10;
-    profileY = 10;
-    popupX = (width - popupWidth) * 0.48;
-    popupY = (height - popupHeight) / 2 - 50;
-    generateAchievements();
+
+    circleX = width / 2;
+    circleY = height / 2 + 50;
+
+    // Инициализация топа игроков с 100 местами
+    for (let i = 1; i <= 100; i++) {
+        leaderboard.push({
+            name: `Игрок${i}`,
+            score: int(random(5000, 50000)), // Случайные очки для демонстрации
+            ton: int(random(100, 1000)) // Случайные TON для демонстрации
+        });
+    }
+
+    // Первоначальные достижения
+    achievements = [
+        {name: "За 50 кликов", condition: () => clicks >= 50, achieved: false, reward: 1000, claimed: false},
+        {name: "За 10 побед", condition: () => victories >= 10, achieved: false, reward: 2000, claimed: false},
+        {name: "За 10 битв", condition: () => totalBattles >= 10, achieved: false, reward: 2000, claimed: false},
+        {name: "За вход в игру", condition: () => millis() - rewardGeneratedTime >= rewardInterval, achieved: true, reward: 1500, claimed: false}
+    ];
+
+    checkRewardGeneration();
 }
 
 function draw() {
     background(20);
-    drawPlayerProfile();
-    drawScoreAboveProgressBar();
-    drawLevelProgressBar();
+    textAlign(CENTER, CENTER);
+
+    // Проверяем и генерируем награды каждые 12 часов
+    checkRewardGeneration();
+
+    if (!profileWindowOpen && !achievementsWindowOpen && !leaderboardWindowOpen) {
+        drawClickerScene();
+        drawInterfaceButtons();
+    }
+
+    if (profileWindowOpen) {
+        drawWindow("Профиль", drawPlayerProfile);
+    }
+    if (achievementsWindowOpen) {
+        drawWindow("Достижения", drawAchievements);
+    }
+    if (leaderboardWindowOpen) {
+        drawWindow("Топ игроков", drawLeaderboard);
+    }
+
     if (isAnimating) {
-        animateCircle();
-    }
-    fill(circleColor);
-    ellipse(width / 2, height / 2 + 50, circleSize, circleSize);
-    for (let i = particleList.length - 1; i >= 0; i--) {
-        let p = particleList[i];
-        p.update();
-        p.display();
-        if (p.isDead()) {
-            particleList.splice(i, 1);
-        }
-    }
-    if (isPopupVisible) {
-        drawPopup();
-    }
-    if (isAchievementsPopupVisible) {
-        drawAchievementsPopup();
-    }
-    drawAchievementsButton();
-}
-
-function mousePressed() {
-    if (dist(mouseX, mouseY, width / 2, height / 2 + 50) < circleSize / 2) {
-        score += 10;
-        totalClicks++;
-        totalPoints += 10;
-        levelProgress = score / nextLevelScore;
-        addParticles(width / 2, height / 2 + 50);
-        isAnimating = true;
-        animationStage = 0;
-        if (score >= nextLevelScore) {
-            level++;
-            nextLevelScore *= 2;
-            levelProgress = 0;
-            levelUp();
-        }
-    }
-    if (isMouseOverProfile()) {
-        isPopupVisible = !isPopupVisible;
-    }
-}
-
-function animateCircle() {
-    if (animationStage === 0) {
-        circleSize -= animationSpeed;
-        if (circleSize <= minSize) {
-            circleSize = minSize;
-            animationStage = 1;
-        }
-    } else if (animationStage === 1) {
-        circleSize += animationSpeed;
-        if (circleSize >= maxSize) {
-            circleSize = maxSize;
-            animationStage = 2;
-        }
-    } else if (animationStage === 2) {
-        circleSize -= animationSpeed;
-        if (circleSize <= 150) {
-            circleSize = 150;
+        animationScale += 0.05;
+        if (animationScale > 1.2) {
+            animationScale = 1;
             isAnimating = false;
         }
     }
+
+    // Отрисовка анимаций "+4" или других чисел
+    for (let i = animations.length - 1; i >= 0; i--) {
+        let anim = animations[i];
+        anim.y -= 1;  // Поднимаем текст вверх
+        anim.alpha -= 5;  // Плавное исчезновение
+        fill(255, anim.alpha);
+        text(`+${anim.value}`, anim.x, anim.y);
+        if (anim.alpha <= 0) {
+            animations.splice(i, 1);  // Удаляем анимацию, когда она исчезла
+        }
+    }
 }
 
-function drawLevelProgressBar() {
-    let barWidth = 300;
-    let barHeight = 20;
-    let xOffset = (width - barWidth) / 2;
-    let yOffset = height / 2 - 50 - 30;
-    fill(100);
-    noStroke();
-    rect(xOffset, yOffset, barWidth, barHeight, 10);
-    fill(circleColor);
-    rect(xOffset, yOffset, barWidth * levelProgress, barHeight, 10);
-}
-
-function drawScoreAboveProgressBar() {
+function drawClickerScene() {
     fill(255);
-    textSize(20);
-    text("Очки: " + score, width / 2, height / 2 - 130);
+    textSize(24);
+    text(`Очки: ${score}`, width / 2, height / 2 - 100);
+    text(`Уровень: ${level}`, width / 2, height / 2 - 60);
+    drawClickableCircle();
+}
+
+function drawClickableCircle() {
+    fill(0, 150, 255);
+    stroke(255);
+    strokeWeight(4);
+    ellipse(circleX, circleY, circleSize * animationScale, circleSize * animationScale);
+}
+
+function mousePressed() {
+    if (!profileWindowOpen && !achievementsWindowOpen && !leaderboardWindowOpen) {
+        if (dist(mouseX, mouseY, circleX, circleY) < circleSize * animationScale / 2) {
+            addPoints(1);
+            triggerAnimation(mouseX, mouseY, clickPower);
+        }
+    }
+}
+
+function touchStarted() {
+    // Поддержка до 8 одновременных касаний
+    for (let i = 0; i < touches.length && i < 8; i++) {
+        let touch = touches[i];
+        if (dist(touch.x, touch.y, circleX, circleY) < circleSize * animationScale / 2) {
+            addPoints(touches.length);  // Начисляем очки в зависимости от количества пальцев
+            triggerAnimation(touch.x, touch.y, clickPower * touches.length);  // Анимация для каждого касания
+        }
+    }
+    return false;
+}
+
+function addPoints(numTouches) {
+    let pointsToAdd = clickPower * numTouches;
+    score += pointsToAdd;
+    totalScore += pointsToAdd;
+    clicks += numTouches;
+    totalClicks += numTouches;
+
+    // Отправка сообщения при достижении нового уровня
+    if (score >= nextLevelScore) {
+        level++;
+        nextLevelScore *= 2;  // Увеличиваем необходимое количество очков для следующего уровня в 2 раза
+        sendTelegramMessage(`Поздравляем! Вы достигли уровня ${level}.`);
+    }
+
+    isAnimating = true;
+    checkAchievements();
+}
+
+function triggerAnimation(x, y, value) {
+    let offsetX = random(-30, 30);  // Случайное смещение по горизонтали
+    let offsetY = random(-30, 30);  // Случайное смещение по вертикали
+    animations.push({x: x + offsetX, y: y + offsetY, value: value, alpha: 255});
+}
+
+function drawInterfaceButtons() {
+    drawButton("Профиль", width / 2 - 180, height / 2 - 230, toggleProfileWindow);
+    drawButton("Достижения", width / 2 - 60, height / 2 - 230, toggleAchievementsWindow);
+    drawButton("Топ", width / 2 + 60, height / 2 - 230, toggleLeaderboardWindow);  // Кнопка для топа игроков
+}
+
+function drawButton(label, x, y, onClick) {
+    fill(0, 150, 255);
+    stroke(255);
+    strokeWeight(2);
+    rect(x, y, 80, 30, 10);
+    fill(255);
+    noStroke();
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text(label, x + 40, y + 15);
+
+    if (mouseIsPressed     && mouseX > x && mouseX < x + 80 && mouseY > y && mouseY < y + 30) {
+        onClick();
+    }
+}
+
+function drawWindow(title, content) {
+    fill(50);
+    stroke(255);
+    rect(width / 2 - 170, height / 2 - 170, 340, 340, 20);  // Увеличиваем окно профиля для большего количества данных
+    
+    fill(255);
+    textSize(18);
+    textAlign(CENTER, TOP);
+    text(title, width / 2, height / 2 - 150);
+
+    content();
+    drawCloseButton();
+}
+
+function drawCloseButton() {
+    fill(255, 0, 0);
+    rect(width / 2 + 70, height / 2 + 130, 80, 30, 10);  // Смещаем кнопку для большего окна
+    fill(255);
+    textSize(16);
+    textAlign(CENTER, CENTER);
+    text("Закрыть", width / 2 + 110, height / 2 + 145);
+
+    if (mouseIsPressed && mouseX > width / 2 + 70 && mouseX < width / 2 + 150 && mouseY > height / 2 + 130 && mouseY < height / 2 + 160) {
+        closeAllWindows();
+    }
+}
+
+function closeAllWindows() {
+    profileWindowOpen = false;
+    achievementsWindowOpen = false;
+    leaderboardWindowOpen = false;
+}
+
+function toggleProfileWindow() {
+    closeAllWindows();
+    profileWindowOpen = !profileWindowOpen;
+}
+
+function toggleAchievementsWindow() {
+    closeAllWindows();
+    achievementsWindowOpen = !achievementsWindowOpen;
+}
+
+function toggleLeaderboardWindow() {
+    closeAllWindows();
+    leaderboardWindowOpen = !leaderboardWindowOpen;
 }
 
 function drawPlayerProfile() {
-    fill(circleColor);
-    noStroke();
-    rect(profileX, profileY, profileWidth, profileHeight, 20);
     fill(255);
-    textSize(12);
-    text("Игрок", profileX + profileWidth / 2, profileY + 20);
-    drawStar(profileX + profileWidth / 2, profileY + 50, 8, 16, 5);
-}
-
-function drawStar(x, y, radius1, radius2, npoints) {
-    let angle = TWO_PI / npoints;
-    let halfAngle = angle / 2.0;
-    beginShape();
-    for (let a = 0; a < TWO_PI; a += angle) {
-        let sx = x + cos(a) * radius2;
-        let sy = y + sin(a) * radius2;
-        vertex(sx, sy);
-        sx = x + cos(a + halfAngle) * radius1;
-        sy = y + sin(a + halfAngle) * radius1;
-        vertex(sx, sy);
-    }
-    endShape(CLOSE);
-}
-
-function drawPopup() {
-    let popupWidth = 250;
-    let popupHeight = 320;
-    let popupX = (width - popupWidth) / 2;
-    let popupY = (height - popupHeight) / 2 - 50;
-    fill(circleColor);
-    noStroke();
-    rect(popupX, popupY, popupWidth, popupHeight, 20);
-    fill(255);
-    textSize(14);
-    textAlign(CENTER, CENTER);
-    text("Информация об игроке", popupX + popupWidth / 2, popupY + 30);
-    textSize(12);
     textAlign(LEFT, TOP);
-    text("Имя: Игрок", popupX + 20, popupY + 60);
-    text("Уровень: " + level, popupX + 20, popupY + 90);
-    text("Очки: " + score, popupX + 20, popupY + 120);
-    text("Всего кликов: " + totalClicks, popupX + 20, popupY + 270);
+    textSize(16);
+    text(`Имя: Игрок`, width / 2 - 150, height / 2 - 120);
+    text(`Уровень: ${level}`, width / 2 - 150, height / 2 - 90);
+    text(`Очки: ${score}`, width / 2 - 150, height / 2 - 60);
+    text(`Всего очков: ${totalScore}`, width / 2 - 150, height / 2 - 30);  // Очки за все время
+    text(`Клики: ${clicks}`, width / 2 - 150, height / 2);  // Текущие клики
+    text(`Всего кликов: ${totalClicks}`, width / 2 - 150, height / 2 + 30);  // Все клики
+    text(`Победы: ${victories}`, width / 2 - 150, height / 2 + 60);  // Победы
+    text(`Всего битв: ${totalBattles}`, width / 2 - 150, height / 2 + 90);  // Все битвы
+    text(`Приглашенные друзья: ${invitedFriends}`, width / 2 - 150, height / 2 + 120);  // Приглашенные друзья
+    text(`Заработано TON: ${totalTONEarned}`, width / 2 - 150, height / 2 + 150);  // Заработано TON
 }
 
-function drawAchievementsButton() {
-    fill(circleColor);
-    noStroke();
-    rect(achievementsX, achievementsY, profileWidth, profileHeight, 20);
+function drawAchievements() {
     fill(255);
-    textSize(12);
-    textAlign(CENTER, CENTER);
-    text("Достижения", achievementsX + profileWidth / 2, achievementsY + 20);
-    textSize(18);
-    textAlign(CENTER, CENTER);
-    text("🏅", achievementsX + profileWidth / 2, achievementsY + 55);
+    textAlign(LEFT, TOP);
+    textSize(14);
+    let yOffset = height / 2 - 110;
+
+    for (let achievement of achievements) {
+        // Фиксированное выравнивание текста
+        let textX = width / 2 - 130;
+        let rewardText = `${achievement.name} - ${achievement.reward}`;
+
+        fill(achievement.achieved ? 'green' : 'white');
+        textAlign(LEFT, TOP);
+        text(rewardText, textX, yOffset);
+
+        if (achievement.achieved && !achievement.claimed) {
+            drawRewardButton(width / 2 + 40, yOffset, achievement);  // Сдвинуты кнопки левее
+        } else if (achievement.claimed) {
+            drawInactiveRewardButton(width / 2 + 40, yOffset);  // Сдвинуты кнопки левее
+        }
+
+        yOffset += 40;
+    }
 }
 
-function drawAchievementsPopup() {
-    fill(circleColor);
-    noStroke();
-    rect(popupX, popupY, popupWidth, popupHeight, 20);
+function drawRewardButton(x, y, achievement) {
+    fill(0, 255, 0);
+    stroke(255);
+    strokeWeight(2);
+    rect(x, y - 10, 100, 30, 10);
     fill(255);
+    noStroke();
     textSize(14);
     textAlign(CENTER, CENTER);
-    text("Достижения", popupX + popupWidth / 2, popupY + 30);
-}
+    text("Забрать", x + 50, y + 5);
 
-function addParticles(x, y) {
-    for (let i = 0; i < particles; i++) {
-        let angle = random(TWO_PI);
-        let radius = random(0, circleSize / 2);
-        let offsetX = cos(angle) * radius;
-        let offsetY = sin(angle) * radius;
-        let speedX = cos(angle) * random(1, 3);
-        let speedY = sin(angle) * random(1, 3);
-        particleList.push(new Particle(x + offsetX, y + offsetY, speedX, speedY, circleColor));
+    if (mouseIsPressed && mouseX > x && mouseX < x + 100 && mouseY > y - 10 && mouseY < y + 20) {
+        claimReward(achievement);
     }
 }
 
-class Particle {
-    constructor(startX, startY, speedX, speedY, c) {
-        this.x = startX;
-        this.y = startY;
-        this.speedX = speedX;
-        this.speedY = speedY;
-        this.lifespan = 255;
-        this.size = 5;
-        this.particleColor = c;
-    }
+function drawInactiveRewardButton(x, y) {
+    fill(100);
+    stroke(255);
+    strokeWeight(2);
+    rect(x, y - 10, 100, 30, 10);
+    fill(255);
+    noStroke();
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text("Забрано", x + 50, y + 5);
+}
 
-        update() {
-        this.x += this.speedX;
-        this.y += this.speedY;
-        this.lifespan -= 4.0;
-        this.size -= 0.05;
-    }
+function claimReward(achievement) {
+    score += achievement.reward;
+    achievement.claimed = true;
+    sendTelegramMessage(`Вы получили награду: ${achievement.reward} очков за достижение ${achievement.name}`);
+}
 
-    display() {
-        noStroke();
-        fill(this.particleColor, this.lifespan);
-        ellipse(this.x, this.y, this.size, this.size);
-    }
+function drawLeaderboard() {
+    fill(255);
+    textAlign(LEFT, TOP);
+    textSize(12);  // Уменьшаем размер текста
+    let yOffset = height / 2 - 130 + scrollOffset; // Добавляем scrollOffset для прокрутки и смещаем ниже
 
-    isDead() {
-        return this.lifespan < 0 || this.size < 0;
+    for (let i = 0; i < leaderboard.length; i++) {
+        let player = leaderboard[i];
+        let textX = width / 2 - 150;  // Сдвигаем текст левее
+        text(`${i + 1}. ${player.name}`, textX, yOffset);
+        text(`Очки: ${player.score}`, textX + 100, yOffset);
+        text(`TON: ${player.ton}`, textX + 200, yOffset);
+        yOffset += 25;  // Уменьшаем расстояние между строками
     }
 }
 
-function generateAchievements() {
-    achievementsList = [];
-    rewardsList = [];
-
-    achievementsList.push("Наберите " + (level * 100) + " очков");
-    rewardsList.push(level * 50);
-
-    achievementsList.push("Сделайте " + (level * 50) + " кликов");
-    rewardsList.push(level * 25);
-
-    achievementsList.push("Достигните уровня " + (level + 1));
-    rewardsList.push(level * 100);
-
-    if (coins >= 200) {
-        achievementsList.push("Заработайте 200 монет");
-        rewardsList.push(200);
+// Реализуем прокрутку списка
+function mouseWheel(event) {
+    if (leaderboardWindowOpen) {
+        scrollOffset += event.delta;
+        scrollOffset = constrain(scrollOffset, -1500, 0);  // Ограничиваем прокрутку
     }
-
-    if (coins >= 500) {
-        achievementsList.push("Заработайте 500 монет");
-        rewardsList.push(500);
-    }
-
-    if (coins >= 1000) {
-        achievementsList.push("Заработайте 1000 монет");
-        rewardsList.push(1000);
-    }
-
-    achievementsList.push("Сыграйте 5 дней подряд");
-    rewardsList.push(250);
 }
 
-function levelUp() {
-    level++;
-    coins += 50;
-    generateAchievements();
+function checkAchievements() {
+    for (let achievement of achievements) {
+        if (achievement.condition() && !achievement.achieved) {
+            achievement.achieved = true;
+        }
+    }
 }
 
-function isMouseOverProfile() {
-    return mouseX > profileX && mouseX < profileX + profileWidth && mouseY > profileY && mouseY < profileY + profileHeight;
+function checkRewardGeneration() {
+    if (millis() - rewardGeneratedTime >= rewardInterval) {
+        rewardGeneratedTime = millis();
+        // Генерация нового достижения каждые 12 часов
+        let newAchievement = {
+            name: `За ${clicks + 50} кликов`,
+            condition: () => clicks >= clicks + 50,
+            achieved: false,
+            reward: (level + 1) * 1000,  // Награда зависит от уровня
+            claimed: false
+        };
+        achievements.push(newAchievement);
+    }
 }
 
-function isMouseOverButton(x, y, w, h) {
-    return mouseX > x && mouseX < x + w && mouseY > y && mouseY < y + h;
+function windowResized() {
+    resizeCanvas(windowWidth, windowHeight);
 }

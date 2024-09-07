@@ -20,10 +20,12 @@
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <script>
+        // Предотвращение двойного нажатия для масштабирования
         document.addEventListener("dblclick", function (e) {
             e.preventDefault();
         }, { passive: false });
 
+        // Предотвращение масштабирования на мобильных устройствах
         document.addEventListener("gesturestart", function (e) {
             e.preventDefault();
         }, { passive: false });
@@ -43,6 +45,11 @@
         // Функция, чтобы обновить холст при изменении размера экрана
         function windowResized() {
             resizeCanvas(windowWidth, windowHeight);
+        }
+
+        function draw() {
+            // Это стандартная функция p5.js, сюда ты можешь добавить свою логику отрисовки
+            background(0);  // Пример: рисует черный фон
         }
     </script>
 </body>

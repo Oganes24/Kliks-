@@ -1,56 +1,12 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1">
-    <title>Telegram Game</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            width: 100%;
-            height: 100%;
-            touch-action: manipulation;
-        }
-
-        canvas {
-            display: block;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple 2D Game</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-    <script>
-        // Предотвращение двойного нажатия для масштабирования
-        document.addEventListener("dblclick", function (e) {
-            e.preventDefault();
-        }, { passive: false });
-
-        // Предотвращение масштабирования на мобильных устройствах
-        document.addEventListener("gesturestart", function (e) {
-            e.preventDefault();
-        }, { passive: false });
-    </script>
 </head>
 <body>
-    <script src="game.js"></script>
-    <script>
-        function setup() {
-            // Настройка холста на полный экран
-            let canvas = createCanvas(windowWidth, windowHeight);
-            canvas.position(0, 0);
-            canvas.style('z-index', '-1');
-            noLoop(); // Останавливаем автоматическую отрисовку для улучшения производительности
-        }
-
-        // Функция, чтобы обновить холст при изменении размера экрана
-        function windowResized() {
-            resizeCanvas(windowWidth, windowHeight);
-        }
-
-        function draw() {
-            // Это стандартная функция p5.js, сюда ты можешь добавить свою логику отрисовки
-            background(0);  // Пример: рисует черный фон
-        }
-    </script>
+    <script src="sketch.js"></script>
 </body>
 </html>

@@ -1,38 +1,36 @@
 let score = 0;
-let totalScore = 0;  // Всего очков за все время
+let totalScore = 0;
 let clicks = 0;
-let totalClicks = 0;  // Всего кликов за все время
-let victories = 0;  // Всего побед
-let totalBattles = 0;  // Всего битв
-let invitedFriends = 0;  // Всего приглашенных друзей
-let totalTONEarned = 0;  // Всего заработано TON
+let totalClicks = 0;
+let victories = 0;
+let totalBattles = 0;
+let invitedFriends = 0;
+let totalTONEarned = 0;
 let level = 1;
-let nextLevelScore = 1000;  // Очки для достижения следующего уровня
-let clickPower = 4;  // За один клик дается 4 очка
+let nextLevelScore = 1000;
+let clickPower = 4;
 let circleSize = 100;
 let circleX, circleY;
 let animationScale = 1;
 let isAnimating = false;
+let playerName = "Игрок";
 
 let profileWindowOpen = false;
 let achievementsWindowOpen = false;
-let leaderboardWindowOpen = false; // Окно для топа игроков
+let leaderboardWindowOpen = false;
 
 let rewardGeneratedTime = 0;
-const rewardInterval = 12 * 60 * 60 * 1000; // 12 часов в миллисекундах для генерации наград
+const rewardInterval = 12 * 60 * 60 * 1000;
 
 let achievements = [];
-let leaderboard = []; // Топ-игроки будут генерироваться автоматически
-let scrollOffset = 0; // Прокрутка для списка игроков
+let leaderboard = [];
+let scrollOffset = 0;
 
-// Telegram API Token и URL
-const TOKEN = 'ВАШ_ТЕЛЕГРАМ_ТОКЕН';
+const TOKEN = '6614618999:AAGWioIuwEL1zNA9Z0m6ZLAbQv9g4Wgo2Mk';
 const BASE_URL = `https://api.telegram.org/bot${TOKEN}/getUpdates`;
 
-// Для анимации "+4"
 let animations = [];
 
-// Получение обновлений из Telegram
 function getUpdates() {
     fetch(BASE_URL)
         .then(response => response.json())
@@ -40,17 +38,17 @@ function getUpdates() {
             const updates = data.result;
             if (updates.length > 0) {
                 const message = updates[0].message;
-                const firstName = message.from.first_name || 'Игрок';
-                displayPlayerName(firstName);
+                playerName = message.from.first_name || 'Игрок';
             }
         })
         .catch(error => console.error('Ошибка при получении обновлений:', error));
 }
 
-// Отображение имени игрока в HTML
 function displayPlayerName(name) {
-    const playerName = document.getElementById('player-name');
-    playerName.innerText = `Имя игрока: ${name}`;
+    const playerNameElement = document.getElementById('player-name');
+    if (playerNameElement) {
+        playerNameElement.innerText = `Имя игрока: ${name}`;
+    }
 }
 
 function setup() {
@@ -61,16 +59,14 @@ function setup() {
     circleX = width / 2;
     circleY = height / 2 + 50;
 
-    // Инициализация топа игроков с 100 местами
     for (let i = 1; i <= 100; i++) {
         leaderboard.push({
             name: `Игрок${i}`,
-            score: int(random(5000, 50000)), // Случайные очки для демонстрации
-            ton: int(random(100, 1000)) // Случайные TON для демонстрации
+            score: int(random(5000, 50000)),
+            ton: int(random(100, 1000))
         });
     }
 
-    // Первоначальные достижения
     achievements = [
         {name: "За 50 кликов", condition: () => clicks >= 50, achieved: false, reward: 1000, claimed: false},
         {name: "За 10 побед", condition: () => victories >= 10, achieved: false, reward: 2000, claimed: false},
@@ -79,14 +75,13 @@ function setup() {
     ];
 
     checkRewardGeneration();
-    getUpdates();  // Получаем имя пользователя из Telegram
+    getUpdates();
 }
 
 function draw() {
     background(20);
     textAlign(CENTER, CENTER);
 
-    // Проверяем и генерируем награды каждые 12 часов
     checkRewardGeneration();
 
     if (!profileWindowOpen && !achievementsWindowOpen && !leaderboardWindowOpen) {
@@ -112,15 +107,14 @@ function draw() {
         }
     }
 
-    // Отрисовка анимаций "+4" или других чисел
     for (let i = animations.length - 1; i >= 0; i--) {
         let anim = animations[i];
-        anim.y -= 1;  // Поднимаем текст вверх
-        anim.alpha -= 5;  // Плавное исчезновение
+        anim.y -= 1;
+        anim.alpha -= 5;
         fill(255, anim.alpha);
         text(`+${anim.value}`, anim.x, anim.y);
         if (anim.alpha <= 0) {
-            animations.splice(i, 1);  // Удаляем анимацию, когда она исчезла
+            animations.splice(i, 1);
         }
     }
 }
@@ -150,12 +144,11 @@ function mousePressed() {
 }
 
 function touchStarted() {
-    // Поддержка до 8 одновременных касаний
     for (let i = 0; i < touches.length && i < 8; i++) {
         let touch = touches[i];
         if (dist(touch.x, touch.y, circleX, circleY) < circleSize * animationScale / 2) {
-            addPoints(touches.length);  // Начисляем очки в зависимости от количества пальцев
-            triggerAnimation(touch.x, touch.y, clickPower * touches.length);  // Анимация для каждого касания
+            addPoints(touches.length);
+            triggerAnimation(touch.x, touch.y, clickPower * touches.length);
         }
     }
     return false;
@@ -168,10 +161,9 @@ function addPoints(numTouches) {
     clicks += numTouches;
     totalClicks += numTouches;
 
-    // Отправка сообщения при достижении нового уровня
     if (score >= nextLevelScore) {
         level++;
-        nextLevelScore *= 2;  // Увеличиваем необходимое количество очков для следующего уровня в 2 раза
+        nextLevelScore *= 2;
     }
 
     isAnimating = true;
@@ -179,15 +171,15 @@ function addPoints(numTouches) {
 }
 
 function triggerAnimation(x, y, value) {
-    let offsetX = random(-30, 30);  // Случайное смещение по горизонтали
-    let offsetY = random(-30, 30);  // Случайное смещение по вертикали
+    let offsetX = random(-30, 30);
+    let offsetY = random(-30, 30);
     animations.push({x: x + offsetX, y: y + offsetY, value: value, alpha: 255});
 }
 
 function drawInterfaceButtons() {
     drawButton("Профиль", width / 2 - 180, height / 2 - 230, toggleProfileWindow);
     drawButton("Достижения", width / 2 - 60, height / 2 - 230, toggleAchievementsWindow);
-    drawButton("Топ", width / 2 + 60, height / 2 - 230, toggleLeaderboardWindow);  // Кнопка для топа игроков
+    drawButton("Топ", width / 2 + 60, height / 2 - 230, toggleLeaderboardWindow);
 }
 
 function drawButton(label, x, y, onClick) {
@@ -201,7 +193,7 @@ function drawButton(label, x, y, onClick) {
     textAlign(CENTER, CENTER);
     text(label, x + 40, y + 15);
 
-        if (mouseIsPressed && mouseX > x && mouseX < x + 80 && mouseY > y && mouseY < y + 30) {
+    if (mouseIsPressed && mouseX > x && mouseX < x + 80 && mouseY > y && mouseY < y + 30) {
         onClick();
     }
 }
@@ -209,7 +201,7 @@ function drawButton(label, x, y, onClick) {
 function drawWindow(title, content) {
     fill(50);
     stroke(255);
-    rect(width / 2 - 170, height / 2 - 170, 340, 340, 20);  // Увеличиваем окно профиля для большего количества данных
+    rect(width / 2 - 170, height / 2 - 170, 340, 340, 20);
     
     fill(255);
     textSize(18);
@@ -222,7 +214,7 @@ function drawWindow(title, content) {
 
 function drawCloseButton() {
     fill(255, 0, 0);
-    rect(width / 2 + 70, height / 2 + 130, 80, 30, 10);  // Смещаем кнопку для большего окна
+    rect(width / 2 + 70, height / 2 + 130, 80, 30, 10);
     fill(255);
     textSize(16);
     textAlign(CENTER, CENTER);
@@ -258,7 +250,6 @@ function drawPlayerProfile() {
     fill(255);
     textAlign(LEFT, TOP);
     textSize(16);
-    const playerName = document.getElementById('player-name').innerText;
     text(`Имя: ${playerName}`, width / 2 - 150, height / 2 - 120);
     text(`Уровень: ${level}`, width / 2 - 150, height / 2 - 90);
     text(`Очки: ${score}`, width / 2 - 150, height / 2 - 60);
@@ -333,8 +324,6 @@ function drawLeaderboard() {
     textAlign(LEFT, TOP);
     textSize(12);
     let yOffset = height / 2 - 130 + scrollOffset;
-
-    leaderboard.sort((a, b) => b.score - a.score); // Сортировка по убыванию очков
 
     for (let i = 0; i < leaderboard.length; i++) {
         let player = leaderboard[i];

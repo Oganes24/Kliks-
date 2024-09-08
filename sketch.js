@@ -5,7 +5,7 @@ let totalClicks = 0;
 let victories = 0;
 let totalBattles = 0;
 let invitedFriends = 0;
-let totalTONEarned = 0; // ТОН, который пользователь заработал
+let totalTONEarned = 0; // Переменная для хранения количества TON
 let level = 1;
 let nextLevelScore = 1000;
 let clickPower = 4;
@@ -80,7 +80,7 @@ function draw() {
     if (!profileWindowOpen && !achievementsWindowOpen && !leaderboardWindowOpen) {
         drawClickerScene();
         drawInterfaceButtons();
-        drawTonAndScore();  // Отображение текущего ТОН и очков
+        drawTonAndScore();  // Отображаем TON и очки
     }
 
     if (profileWindowOpen) {
@@ -153,7 +153,7 @@ function addPoints(numTouches) {
     checkAchievements();
 }
 
-// Новая функция для отображения ТОН и очков над кнопкой достижений
+// Новая функция для отображения TON и очков над кнопкой достижений
 function drawTonAndScore() {
     textSize(16);
     fill(255);
@@ -168,7 +168,7 @@ function triggerAnimation(x, y, value) {
 }
 
 function drawInterfaceButtons() {
-        drawButton("Профиль", width / 2 - 180, height / 2 - 230, toggleProfileWindow);
+    drawButton("Профиль", width / 2 - 180, height / 2 - 230, toggleProfileWindow);
     drawButton("Достижения", width / 2 - 60, height / 2 - 230, toggleAchievementsWindow);
     drawButton("Топ", width / 2 + 60, height / 2 - 230, toggleLeaderboardWindow);
 }
@@ -319,6 +319,10 @@ function drawLeaderboard() {
     for (let i = 0; i < leaderboard.length; i++) {
         let player = leaderboard[i];
         let textX = width / 2 - 150;
+        let fadeFactor = map(yOffset, fadeStart, fadeEnd, 255, 0); // Устанавливаем прозрачность
+        fadeFactor = constrain(fadeFactor, 0, 255); // Ограничиваем прозрачность
+
+        fill(255, fadeFactor);
         text(`${i + 1}. ${player.name}`, textX, yOffset);
         text(`Очки: ${player.score}`, textX + 100, yOffset);
         text(`TON: ${player.ton}`, textX + 200, yOffset);
@@ -329,7 +333,7 @@ function drawLeaderboard() {
 function mouseWheel(event) {
     if (leaderboardWindowOpen) {
         scrollOffset += event.delta;
-        scrollOffset = constrain(scrollOffset, -1500, 0);
+        scrollOffset = constrain(scrollOffset, -1500, 0); // Ограничиваем прокрутку
     }
 }
 

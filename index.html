@@ -69,5 +69,11 @@
         <div id="leaderboardContent"></div>
         <div id="closeButton">Закрыть</div>
     </div>
+
+    <script>
+        document.getElementById('closeButton').addEventListener('click', function() {
+            document.getElementById('leaderboardWindow').style.display = 'none';
+        });
+    </script>
 </body>
 </html>

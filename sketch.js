@@ -170,12 +170,12 @@ function drawButton(label, x, y, onClick) {
     fill(0, 150, 255);
     stroke(255);
     strokeWeight(2);
-    rect(x, y, 80, 30, 10);
+        rect(x, y, 80, 30, 10);
     fill(255);
     noStroke();
     textSize(14);
     textAlign(CENTER, CENTER);
-        text(label, x + 40, y + 15);
+    text(label, x + 40, y + 15);
 
     if (mouseIsPressed && mouseX > x && mouseX < x + 80 && mouseY > y && mouseY < y + 30) {
         onClick();
@@ -257,6 +257,22 @@ document.getElementById('closeButton').addEventListener('click', function() {
 
 function drawLeaderboardWindow() {
     // Эта функция будет пустой, потому что мы уже отображаем список игроков через DOM-элементы
+}
+
+function drawPlayerProfile() {
+    fill(255);
+    textAlign(LEFT, TOP);
+    textSize(16);
+    text(`Имя: ${playerName}`, width / 2 - 150, height / 2 - 120);
+    text(`Уровень: ${level}`, width / 2 - 150, height / 2 - 90);
+    text(`Очки: ${score}`, width / 2 - 150, height / 2 - 60);
+    text(`Всего очков: ${totalScore}`, width / 2 - 150, height / 2 - 30);
+    text(`Клики: ${clicks}`, width / 2 - 150, height / 2);
+    text(`Всего кликов: ${totalClicks}`, width / 2 - 150, height / 2 + 30);
+    text(`Победы: ${victories}`, width / 2 - 150, height / 2 + 60);
+    text(`Всего битв: ${totalBattles}`, width / 2 - 150, height / 2 + 90);
+    text(`Приглашенные друзья: ${invitedFriends}`, width / 2 - 150, height / 2 + 120);
+    text(`Заработано TON: ${totalTONEarned}`, width / 2 - 150, height / 2 + 150);
 }
 
 function checkAchievements() {

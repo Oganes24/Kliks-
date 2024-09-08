@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1, minimum-scale=1">
     <title>Clicker Game</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-    <script src="sketch.js"></script> <!-- Подключение внешнего файла с кодом игры -->
+    <script src="sketch.js"></script> <!-- Подключаем файл с логикой игры -->
     <style>
         body, html {
             margin: 0;
@@ -20,28 +20,24 @@
             width: 100% !important;
             height: 100% !important;
         }
-        /* Улучшаем стили всех окон */
-        .window {
+
+        /* Стили для окна топа игроков */
+        #leaderboardWindow {
             position: absolute;
             width: 340px;
             height: 340px;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            overflow-y: auto; /* Прокрутка */
             background-color: rgba(50, 50, 50, 0.9);
             border-radius: 15px;
             border: 2px solid white;
             z-index: 2;
-            display: none; /* По умолчанию скрыты */
+            display: none; /* По умолчанию скрыто */
         }
 
-        /* Специально для окна топа игроков */
-        #leaderboardWindow {
-            overflow-y: auto; /* Прокрутка только для этого окна */
-        }
-
-        /* Стиль для кнопок */
-        .button {
+        #closeButton {
             position: absolute;
             bottom: 10px;
             right: 10px;
@@ -52,7 +48,6 @@
             cursor: pointer;
         }
 
-        /* Стили текста в окнах */
         .window-title {
             color: white;
             font-size: 24px;
@@ -69,11 +64,10 @@
 </head>
 <body>
     <!-- Окно топа игроков -->
-    <div id="leaderboardWindow" class="window">
+    <div id="leaderboardWindow">
         <div class="window-title">Топ игроков</div>
         <div id="leaderboardContent"></div>
-        <div id="closeButton" class="button">Закрыть</div>
+        <div id="closeButton">Закрыть</div>
     </div>
-
 </body>
 </html>

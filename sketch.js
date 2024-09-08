@@ -215,13 +215,12 @@ function drawWindow(title, content) {
     textSize(18);
     textAlign(CENTER, TOP);
     text(title, width / 2, height / 2 - 150);
-
-    content();
+        content();
     drawCloseButton();
 }
 
 function drawCloseButton() {
-        fill(255, 0, 0);
+    fill(255, 0, 0);
     rect(width / 2 + 70, height / 2 + 130, 80, 30, 10);  // Смещаем кнопку для большего окна
     fill(255);
     textSize(16);
@@ -255,10 +254,11 @@ function toggleLeaderboardWindow() {
 }
 
 function drawPlayerProfile() {
+    const playerName = document.getElementById('player-name').innerText.replace("Имя игрока: ", "");
     fill(255);
     textAlign(LEFT, TOP);
     textSize(16);
-    text(`Имя: Игрок`, width / 2 - 150, height / 2 - 120);
+    text(`Имя: ${playerName}`, width / 2 - 150, height / 2 - 120);
     text(`Уровень: ${level}`, width / 2 - 150, height / 2 - 90);
     text(`Очки: ${score}`, width / 2 - 150, height / 2 - 60);
     text(`Всего очков: ${totalScore}`, width / 2 - 150, height / 2 - 30);  // Очки за все время

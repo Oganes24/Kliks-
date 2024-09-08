@@ -27,33 +27,31 @@ let scrollOffset = 0; // Прокрутка для списка игроков
 
 // Telegram API Token и Chat ID
 const TOKEN = '6614618999:AAGWioIuwEL1zNA9Z0m6ZLAbQv9g4Wgo2Mk';  // Токен бота
-const CHAT_ID = 'ваш_chat_id';  // Замените на ваш chat_id (получите через API Telegram)
-
-// Функция для отправки сообщений в Telegram через бота
-function sendTelegramMessage(message) {
-    const url = `https://api.telegram.org/bot${TOKEN}/sendMessage`;
-
-    fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            chat_id: CHAT_ID,
-            text: message
-        })
-    }).then(response => response.json())
-    .then(data => {
-        if (data.ok) {
-            console.log("Сообщение успешно отправлено в Telegram");
-        } else {
-            console.log("Ошибка отправки сообщения:", data.description);
-        }
-    }).catch(error => console.error("Ошибка:", error));
-}
+const BASE_URL = `https://api.telegram.org/bot${TOKEN}/getUpdates`;
 
 // Для анимации "+4"
 let animations = [];
+
+// Получение обновлений из Telegram
+function getUpdates() {
+    fetch(BASE_URL)
+        .then(response => response.json())
+        .then(data => {
+            const updates = data.result;
+            if (updates.length > 0) {
+                const message = updates[0].message;
+                const firstName = message.from.first_name || 'Игрок';
+                displayPlayerName(firstName);
+            }
+        })
+        .catch(error => console.error('Ошибка при получении обновлений:', error));
+}
+
+// Отображение имени игрока в HTML
+function displayPlayerName(name) {
+    const playerName = document.getElementById('player-name');
+    playerName.innerText = `Имя игрока: ${name}`;
+}
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
@@ -81,6 +79,7 @@ function setup() {
     ];
 
     checkRewardGeneration();
+    getUpdates();  // Получаем имя пользователя из Telegram
 }
 
 function draw() {
@@ -173,7 +172,6 @@ function addPoints(numTouches) {
     if (score >= nextLevelScore) {
         level++;
         nextLevelScore *= 2;  // Увеличиваем необходимое количество очков для следующего уровня в 2 раза
-        sendTelegramMessage(`Поздравляем! Вы достигли уровня ${level}.`);
     }
 
     isAnimating = true;
@@ -203,7 +201,7 @@ function drawButton(label, x, y, onClick) {
     textAlign(CENTER, CENTER);
     text(label, x + 40, y + 15);
 
-    if (mouseIsPressed     && mouseX > x && mouseX < x + 80 && mouseY > y && mouseY < y + 30) {
+    if (mouseIsPressed && mouseX > x && mouseX < x + 80 && mouseY > y && mouseY < y + 30) {
         onClick();
     }
 }
@@ -223,7 +221,7 @@ function drawWindow(title, content) {
 }
 
 function drawCloseButton() {
-    fill(255, 0, 0);
+        fill(255, 0, 0);
     rect(width / 2 + 70, height / 2 + 130, 80, 30, 10);  // Смещаем кнопку для большего окна
     fill(255);
     textSize(16);
@@ -328,7 +326,6 @@ function drawInactiveRewardButton(x, y) {
 function claimReward(achievement) {
     score += achievement.reward;
     achievement.claimed = true;
-    sendTelegramMessage(`Вы получили награду: ${achievement.reward} очков за достижение ${achievement.name}`);
 }
 
 function drawLeaderboard() {

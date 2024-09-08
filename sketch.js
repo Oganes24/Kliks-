@@ -39,17 +39,9 @@ function getUpdates() {
             if (updates.length > 0) {
                 const message = updates[0].message;
                 playerName = message.from.first_name || 'Игрок';
-                displayPlayerName(playerName);
             }
         })
         .catch(error => console.error('Ошибка при получении обновлений:', error));
-}
-
-function displayPlayerName(name) {
-    const playerNameElement = document.getElementById('player-name');
-    if (playerNameElement) {
-        playerNameElement.innerText = `Имя игрока: ${name}`;
-    }
 }
 
 function setup() {
@@ -170,7 +162,10 @@ function drawButton(label, x, y, onClick) {
     fill(0, 150, 255);
     stroke(255);
     strokeWeight(2);
-        rect(x, y, 80, 30, 10);
+    Продолжаем с завершением кода `sketch.js`:
+
+```javascript
+    rect(x, y, 80, 30, 10);
     fill(255);
     noStroke();
     textSize(14);

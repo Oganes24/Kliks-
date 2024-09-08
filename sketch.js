@@ -26,7 +26,7 @@ let achievements = [];
 let leaderboard = [];
 let scrollOffset = 0;
 
-const TOKEN = '6614618999:AAGWioIuwEL1zNA9Z0m6ZLAbQv9g4Wgo2Mk'; // Токен не удален, как вы просили
+const TOKEN = '6614618999:AAGWioIuwEL1zNA9Z0m6ZLAbQv9g4Wgo2Mk';
 const BASE_URL = `https://api.telegram.org/bot${TOKEN}/getUpdates`;
 
 let animations = [];
@@ -61,10 +61,10 @@ function setup() {
     }
 
     achievements = [
-        { name: "За 50 кликов", condition: () => clicks >= 50, achieved: false, reward: 1000, claimed: false },
-        { name: "За 10 побед", condition: () => victories >= 10, achieved: false, reward: 2000, claimed: false },
-        { name: "За 10 битв", condition: () => totalBattles >= 10, achieved: false, reward: 2000, claimed: false },
-        { name: "За вход в игру", condition: () => millis() - rewardGeneratedTime >= rewardInterval, achieved: true, reward: 1500, claimed: false }
+        {name: "За 50 кликов", condition: () => clicks >= 50, achieved: false, reward: 1000, claimed: false},
+        {name: "За 10 побед", condition: () => victories >= 10, achieved: false, reward: 2000, claimed: false},
+        {name: "За 10 битв", condition: () => totalBattles >= 10, achieved: false, reward: 2000, claimed: false},
+        {name: "За вход в игру", condition: () => millis() - rewardGeneratedTime >= rewardInterval, achieved: true, reward: 1500, claimed: false}
     ];
 
     checkRewardGeneration();
@@ -89,7 +89,7 @@ function draw() {
         drawWindow("Достижения", drawAchievements);
     }
     if (leaderboardWindowOpen) {
-        drawLeaderboardWindow();
+        drawWindow("Топ игроков", drawLeaderboard);
     }
 
     if (isAnimating) {
@@ -136,6 +136,17 @@ function mousePressed() {
     }
 }
 
+function touchStarted() {
+    for (let i = 0; i < touches.length && i < 8; i++) {
+        let touch = touches[i];
+        if (dist(touch.x, touch.y, circleX, circleY) < circleSize * animationScale / 2) {
+            addPoints(touches.length);
+            triggerAnimation(touch.x, touch.y, clickPower * touches.length);
+        }
+    }
+    return false;
+}
+
 function addPoints(numTouches) {
     let pointsToAdd = clickPower * numTouches;
     score += pointsToAdd;
@@ -152,9 +163,15 @@ function addPoints(numTouches) {
     checkAchievements();
 }
 
+function triggerAnimation(x, y, value) {
+    let offsetX = random(-30, 30);
+    let offsetY = random(-30, 30);
+    animations.push({x: x + offsetX, y: y + offsetY, value: value, alpha: 255});
+}
+
 function drawInterfaceButtons() {
     drawButton("Профиль", width / 2 - 180, height / 2 - 230, toggleProfileWindow);
-    drawButton("Достижения", width / 2 - 60, height / 2 - 230, toggleAchievementsWindow);
+        drawButton("Достижения", width / 2 - 60, height / 2 - 230, toggleAchievementsWindow);
     drawButton("Топ", width / 2 + 60, height / 2 - 230, toggleLeaderboardWindow);
 }
 
@@ -162,9 +179,6 @@ function drawButton(label, x, y, onClick) {
     fill(0, 150, 255);
     stroke(255);
     strokeWeight(2);
-    Продолжаем с завершением кода `sketch.js`:
-
-```javascript
     rect(x, y, 80, 30, 10);
     fill(255);
     noStroke();
@@ -223,35 +237,6 @@ function toggleAchievementsWindow() {
 function toggleLeaderboardWindow() {
     closeAllWindows();
     leaderboardWindowOpen = !leaderboardWindowOpen;
-    if (leaderboardWindowOpen) {
-        populateLeaderboard();  // Загружаем данные таблицы лидеров при открытии окна
-    }
-}
-
-function populateLeaderboard() {
-    const leaderboardWindow = document.getElementById('leaderboardContent');
-    leaderboardWindow.innerHTML = ""; // Очищаем старый контент
-
-    leaderboard.sort((a, b) => b.score - a.score); // Сортируем таблицу лидеров
-
-    for (let i = 0; i < leaderboard.length; i++) {
-        let player = leaderboard[i];
-        const playerElement = document.createElement('div');
-        playerElement.classList.add('playerEntry');
-        playerElement.innerText = `${i + 1}. ${player.name} — Очки: ${player.score}, TON: ${player.ton}`;
-        leaderboardWindow.appendChild(playerElement);
-    }
-
-    document.getElementById('leaderboardWindow').style.display = 'block';
-}
-
-document.getElementById('closeButton').addEventListener('click', function() {
-    document.getElementById('leaderboardWindow').style.display = 'none';
-    leaderboardWindowOpen = false;
-});
-
-function drawLeaderboardWindow() {
-    // Эта функция будет пустой, потому что мы уже отображаем список игроков через DOM-элементы
 }
 
 function drawPlayerProfile() {
@@ -268,6 +253,86 @@ function drawPlayerProfile() {
     text(`Всего битв: ${totalBattles}`, width / 2 - 150, height / 2 + 90);
     text(`Приглашенные друзья: ${invitedFriends}`, width / 2 - 150, height / 2 + 120);
     text(`Заработано TON: ${totalTONEarned}`, width / 2 - 150, height / 2 + 150);
+}
+
+function drawAchievements() {
+    fill(255);
+    textAlign(LEFT, TOP);
+    textSize(14);
+    let yOffset = height / 2 - 110;
+
+    for (let achievement of achievements) {
+        let textX = width / 2 - 130;
+        let rewardText = `${achievement.name} - ${achievement.reward}`;
+
+        fill(achievement.achieved ? 'green' : 'white');
+        textAlign(LEFT, TOP);
+        text(rewardText, textX, yOffset);
+
+        if (achievement.achieved && !achievement.claimed) {
+            drawRewardButton(width / 2 + 40, yOffset, achievement);
+        } else if (achievement.claimed) {
+            drawInactiveRewardButton(width / 2 + 40, yOffset);
+        }
+
+        yOffset += 40;
+    }
+}
+
+function drawRewardButton(x, y, achievement) {
+    fill(0, 255, 0);
+    stroke(255);
+    strokeWeight(2);
+    rect(x, y - 10, 100, 30, 10);
+    fill(255);
+    noStroke();
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text("Забрать", x + 50, y + 5);
+
+    if (mouseIsPressed && mouseX > x && mouseX < x + 100 && mouseY > y - 10 && mouseY < y + 20) {
+        claimReward(achievement);
+    }
+}
+
+function drawInactiveRewardButton(x, y) {
+    fill(100);
+    stroke(255);
+    strokeWeight(2);
+    rect(x, y - 10, 100, 30, 10);
+    fill(255);
+    noStroke();
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text("Забрано", x + 50, y + 5);
+}
+
+function claimReward(achievement) {
+    score += achievement.reward;
+    achievement.claimed = true;
+}
+
+function drawLeaderboard() {
+    fill(255);
+    textAlign(LEFT, TOP);
+    textSize(12);
+    let yOffset = height / 2 - 130 + scrollOffset;
+
+    for (let i = 0; i < leaderboard.length; i++) {
+        let player = leaderboard[i];
+        let textX = width / 2 - 150;
+        text(`${i + 1}. ${player.name}`, textX, yOffset);
+        text(`Очки: ${player.score}`, textX + 100, yOffset);
+        text(`TON: ${player.ton}`, textX + 200, yOffset);
+        yOffset += 25;
+    }
+}
+
+function mouseWheel(event) {
+    if (leaderboardWindowOpen) {
+        scrollOffset += event.delta;
+        scrollOffset = constrain(scrollOffset, -1500, 0);
+    }
 }
 
 function checkAchievements() {

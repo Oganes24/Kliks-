@@ -10,14 +10,22 @@
         body, html {
             margin: 0;
             padding: 0;
+            height: 100%;
             overflow: hidden;
             width: 100%;
-            height: 100%;
         }
         canvas {
             display: block;
             width: 100% !important;
             height: 100% !important;
+        }
+        #player-name {
+            color: white; /* Сделаем текст белым */
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            z-index: 1; /* Чтобы текст был поверх канваса */
         }
     </style>
 </head>

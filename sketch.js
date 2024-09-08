@@ -5,7 +5,7 @@ let totalClicks = 0;
 let victories = 0;
 let totalBattles = 0;
 let invitedFriends = 0;
-let totalTONEarned = 0; // Переменная для хранения количества TON
+let totalTONEarned = 0;
 let level = 1;
 let nextLevelScore = 1000;
 let clickPower = 4;
@@ -44,6 +44,13 @@ function getUpdates() {
         .catch(error => console.error('Ошибка при получении обновлений:', error));
 }
 
+function displayPlayerName(name) {
+    const playerNameElement = document.getElementById('player-name');
+    if (playerNameElement) {
+        playerNameElement.innerText = `Имя игрока: ${name}`;
+    }
+}
+
 function setup() {
     createCanvas(windowWidth, windowHeight);
     textSize(16);
@@ -80,7 +87,6 @@ function draw() {
     if (!profileWindowOpen && !achievementsWindowOpen && !leaderboardWindowOpen) {
         drawClickerScene();
         drawInterfaceButtons();
-        drawTonAndScore();  // Отображаем TON и очки
     }
 
     if (profileWindowOpen) {
@@ -137,6 +143,17 @@ function mousePressed() {
     }
 }
 
+function touchStarted() {
+    for (let i = 0; i < touches.length && i < 8; i++) {
+        let touch = touches[i];
+        if (dist(touch.x, touch.y, circleX, circleY) < circleSize * animationScale / 2) {
+            addPoints(touches.length);
+            triggerAnimation(touch.x, touch.y, clickPower * touches.length);
+        }
+    }
+    return false;
+}
+
 function addPoints(numTouches) {
     let pointsToAdd = clickPower * numTouches;
     score += pointsToAdd;
@@ -153,14 +170,6 @@ function addPoints(numTouches) {
     checkAchievements();
 }
 
-// Новая функция для отображения TON и очков над кнопкой достижений
-function drawTonAndScore() {
-    textSize(16);
-    fill(255);
-    text(`TON: ${totalTONEarned}`, width / 2, height / 2 - 280);  // Поднял TON выше
-    text(`Очки: ${score}`, width / 2, height / 2 - 230);         // Позиционируем под TON
-}
-
 function triggerAnimation(x, y, value) {
     let offsetX = random(-30, 30);
     let offsetY = random(-30, 30);
@@ -168,10 +177,15 @@ function triggerAnimation(x, y, value) {
 }
 
 function drawInterfaceButtons() {
-    // Сдвигаем кнопки правее
-    drawButton("Профиль", width / 2 - 120, height / 2 - 230, toggleProfileWindow);
-    drawButton("Достижения", width / 2 + 0, height / 2 - 230, toggleAchievementsWindow); // Совмещаем с текстом Очки
-    drawButton("Топ", width / 2 + 120, height / 2 - 230, toggleLeaderboardWindow);
+    let buttonWidth = 80;
+    let buttonSpacing = 20;
+    
+    let totalWidth = 3 * buttonWidth + 2 * buttonSpacing; // Общая ширина всех кнопок с учётом расстояния между ними
+    let startX = (width - totalWidth) / 2; // Начальная позиция для выравнивания по центру
+
+    drawButton("Профиль", startX, height / 2 - 230, toggleProfileWindow);
+    drawButton("Достижения", startX + buttonWidth + buttonSpacing, height / 2 - 230, toggleAchievementsWindow);
+    drawButton("Топ", startX + 2 * (buttonWidth + buttonSpacing), height / 2 - 230, toggleLeaderboardWindow);
 }
 
 function drawButton(label, x, y, onClick) {
@@ -201,7 +215,7 @@ function drawWindow(title, content) {
     text(title, width / 2, height / 2 - 150);
 
     content();
-    drawCloseButton(); // Добавляем кнопку закрытия
+    drawCloseButton();
 }
 
 function drawCloseButton() {
@@ -242,7 +256,7 @@ function drawPlayerProfile() {
     fill(255);
     textAlign(LEFT, TOP);
     textSize(16);
-    text(`Имя: ${playerName}`, width / 2 - 150, height / 2 - 120);
+        text(`Имя: ${playerName}`, width / 2 - 150, height / 2 - 120);
     text(`Уровень: ${level}`, width / 2 - 150, height / 2 - 90);
     text(`Очки: ${score}`, width / 2 - 150, height / 2 - 60);
     text(`Всего очков: ${totalScore}`, width / 2 - 150, height / 2 - 30);
@@ -320,10 +334,12 @@ function drawLeaderboard() {
     for (let i = 0; i < leaderboard.length; i++) {
         let player = leaderboard[i];
         let textX = width / 2 - 150;
-        let fadeFactor = map(yOffset, fadeStart, fadeEnd, 255, 0); // Устанавливаем прозрачность
-        fadeFactor = constrain(fadeFactor, 0, 255); // Ограничиваем прозрачность
 
-        fill(255, fadeFactor);
+        // Добавляем эффект плавного исчезновения в зависимости от позиции
+        let distanceFromCenter = Math.abs((yOffset + 25 * i) - height / 2);
+        let alphaValue = map(distanceFromCenter, 0, height / 2, 255, 0); // Чем дальше от центра, тем меньше прозрачность
+        fill(255, alphaValue);
+
         text(`${i + 1}. ${player.name}`, textX, yOffset);
         text(`Очки: ${player.score}`, textX + 100, yOffset);
         text(`TON: ${player.ton}`, textX + 200, yOffset);

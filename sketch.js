@@ -26,30 +26,7 @@ let achievements = [];
 let leaderboard = [];
 let scrollOffset = 0;
 
-const TOKEN = '6614618999:AAGWioIuwEL1zNA9Z0m6ZLAbQv9g4Wgo2Mk';
-const BASE_URL = `https://api.telegram.org/bot${TOKEN}/getUpdates`;
-
 let animations = [];
-
-function getUpdates() {
-    fetch(BASE_URL)
-        .then(response => response.json())
-        .then(data => {
-            const updates = data.result;
-            if (updates.length > 0) {
-                const message = updates[0].message;
-                playerName = message.from.first_name || 'Игрок';
-            }
-        })
-        .catch(error => console.error('Ошибка при получении обновлений:', error));
-}
-
-function displayPlayerName(name) {
-    const playerNameElement = document.getElementById('player-name');
-    if (playerNameElement) {
-        playerNameElement.innerText = `Имя игрока: ${name}`;
-    }
-}
 
 function setup() {
     createCanvas(windowWidth, windowHeight);
@@ -59,6 +36,7 @@ function setup() {
     circleX = width / 2;
     circleY = height / 2 + 50;
 
+    // Создаем список топа игроков
     for (let i = 1; i <= 100; i++) {
         leaderboard.push({
             name: `Игрок${i}`,
@@ -67,6 +45,7 @@ function setup() {
         });
     }
 
+    // Достижения
     achievements = [
         {name: "За 50 кликов", condition: () => clicks >= 50, achieved: false, reward: 1000, claimed: false},
         {name: "За 10 побед", condition: () => victories >= 10, achieved: false, reward: 2000, claimed: false},
@@ -75,7 +54,6 @@ function setup() {
     ];
 
     checkRewardGeneration();
-    getUpdates();
 }
 
 function draw() {
@@ -96,9 +74,10 @@ function draw() {
         drawWindow("Достижения", drawAchievements);
     }
     if (leaderboardWindowOpen) {
-        drawWindow("Топ игроков", drawLeaderboard);
+        drawLeaderboard();
     }
 
+    // Анимация клика
     if (isAnimating) {
         animationScale += 0.05;
         if (animationScale > 1.2) {
@@ -107,6 +86,7 @@ function draw() {
         }
     }
 
+    // Анимация текста
     for (let i = animations.length - 1; i >= 0; i--) {
         let anim = animations[i];
         anim.y -= 1;
@@ -143,17 +123,6 @@ function mousePressed() {
     }
 }
 
-function touchStarted() {
-    for (let i = 0; i < touches.length && i < 8; i++) {
-        let touch = touches[i];
-        if (dist(touch.x, touch.y, circleX, circleY) < circleSize * animationScale / 2) {
-            addPoints(touches.length);
-            triggerAnimation(touch.x, touch.y, clickPower * touches.length);
-        }
-    }
-    return false;
-}
-
 function addPoints(numTouches) {
     let pointsToAdd = clickPower * numTouches;
     score += pointsToAdd;
@@ -177,29 +146,23 @@ function triggerAnimation(x, y, value) {
 }
 
 function drawInterfaceButtons() {
-    let buttonWidth = 80;
-    let buttonSpacing = 20;
-    
-    let totalWidth = 3 * buttonWidth + 2 * buttonSpacing; // Общая ширина всех кнопок с учётом расстояния между ними
-    let startX = (width - totalWidth) / 2; // Начальная позиция для выравнивания по центру
-
-    drawButton("Профиль", startX, height / 2 - 230, toggleProfileWindow);
-    drawButton("Достижения", startX + buttonWidth + buttonSpacing, height / 2 - 230, toggleAchievementsWindow);
-    drawButton("Топ", startX + 2 * (buttonWidth + buttonSpacing), height / 2 - 230, toggleLeaderboardWindow);
+    drawButton("Профиль", width / 2 - 180, height / 2 - 230, toggleProfileWindow);
+    drawButton("Достижения", width / 2 - 60, height / 2 - 230, toggleAchievementsWindow);
+    drawButton("Топ", width / 2 + 60, height / 2 - 230, toggleLeaderboardWindow);
 }
 
 function drawButton(label, x, y, onClick) {
     fill(0, 150, 255);
     stroke(255);
     strokeWeight(2);
-    rect(x, y, 80, 30, 10);
+    rect(x - 40, y - 15, 80, 30, 10);
     fill(255);
     noStroke();
     textSize(14);
     textAlign(CENTER, CENTER);
-    text(label, x + 40, y + 15);
+    text(label, x, y);
 
-    if (mouseIsPressed && mouseX > x && mouseX < x + 80 && mouseY > y && mouseY < y + 30) {
+    if (mouseIsPressed && mouseX > x - 40 && mouseX < x + 40 && mouseY > y - 15 && mouseY < y + 15) {
         onClick();
     }
 }
@@ -215,48 +178,54 @@ function drawWindow(title, content) {
     text(title, width / 2, height / 2 - 150);
 
     content();
-    drawCloseButton();
-}
-
-function drawCloseButton() {
-    fill(255, 0, 0);
-    rect(width / 2 + 70, height / 2 + 130, 80, 30, 10);
-    fill(255);
-    textSize(16);
-    textAlign(CENTER, CENTER);
-    text("Закрыть", width / 2 + 110, height / 2 + 145);
-
-    if (mouseIsPressed && mouseX > width / 2 + 70 && mouseX < width / 2 + 150 && mouseY > height / 2 + 130 && mouseY < height / 2 + 160) {
-        closeAllWindows();
-    }
-}
-
-function closeAllWindows() {
-    profileWindowOpen = false;
-    achievementsWindowOpen = false;
-    leaderboardWindowOpen = false;
 }
 
 function toggleProfileWindow() {
-    closeAllWindows();
     profileWindowOpen = !profileWindowOpen;
 }
 
 function toggleAchievementsWindow() {
-    closeAllWindows();
     achievementsWindowOpen = !achievementsWindowOpen;
 }
 
 function toggleLeaderboardWindow() {
-    closeAllWindows();
     leaderboardWindowOpen = !leaderboardWindowOpen;
+    document.getElementById('leaderboardWindow').style.display = leaderboardWindowOpen ? 'block' : 'none';
+}
+
+function drawLeaderboard() {
+    fill(255);
+    textAlign(LEFT, TOP);
+    textSize(12);
+    let yOffset = height / 2 - 130 + scrollOffset;
+
+    for (let i = 0; i < leaderboard.length; i++) {
+        let player = leaderboard[i];
+        let textX = width / 2 - 150;
+
+        let distanceFromCenter = Math.abs((yOffset + 25 * i) - height / 2);
+        let alphaValue = map(distanceFromCenter, 0, height / 2, 255, 0); // Плавное исчезновение текста
+        fill(255, alphaValue);
+
+        text(`${i + 1}. ${player.name}`, textX, yOffset);
+        text(`Очки: ${player.score}`, textX + 100, yOffset);
+        text(`TON: ${player.ton}`, textX + 200, yOffset);
+        yOffset += 25;
+    }
+}
+
+function mouseWheel(event) {
+    if (leaderboardWindowOpen) {
+        scrollOffset += event.delta;
+        scrollOffset = constrain(scrollOffset, -1500, 0); // Ограничение прокрутки
+    }
 }
 
 function drawPlayerProfile() {
     fill(255);
     textAlign(LEFT, TOP);
     textSize(16);
-        text(`Имя: ${playerName}`, width / 2 - 150, height / 2 - 120);
+    text(`Имя: ${playerName}`, width / 2 - 150, height / 2 - 120);
     text(`Уровень: ${level}`, width / 2 - 150, height / 2 - 90);
     text(`Очки: ${score}`, width / 2 - 150, height / 2 - 60);
     text(`Всего очков: ${totalScore}`, width / 2 - 150, height / 2 - 30);
@@ -323,35 +292,6 @@ function drawInactiveRewardButton(x, y) {
 function claimReward(achievement) {
     score += achievement.reward;
     achievement.claimed = true;
-}
-
-function drawLeaderboard() {
-    fill(255);
-    textAlign(LEFT, TOP);
-    textSize(12);
-    let yOffset = height / 2 - 130 + scrollOffset;
-
-    for (let i = 0; i < leaderboard.length; i++) {
-        let player = leaderboard[i];
-        let textX = width / 2 - 150;
-
-        // Добавляем эффект плавного исчезновения в зависимости от позиции
-        let distanceFromCenter = Math.abs((yOffset + 25 * i) - height / 2);
-        let alphaValue = map(distanceFromCenter, 0, height / 2, 255, 0); // Чем дальше от центра, тем меньше прозрачность
-        fill(255, alphaValue);
-
-        text(`${i + 1}. ${player.name}`, textX, yOffset);
-        text(`Очки: ${player.score}`, textX + 100, yOffset);
-        text(`TON: ${player.ton}`, textX + 200, yOffset);
-        yOffset += 25;
-    }
-}
-
-function mouseWheel(event) {
-    if (leaderboardWindowOpen) {
-        scrollOffset += event.delta;
-        scrollOffset = constrain(scrollOffset, -1500, 0); // Ограничиваем прокрутку
-    }
 }
 
 function checkAchievements() {

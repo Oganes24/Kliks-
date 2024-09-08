@@ -25,7 +25,7 @@ let achievements = [];
 let leaderboard = []; // Топ-игроки будут генерироваться автоматически
 let scrollOffset = 0; // Прокрутка для списка игроков
 
-// Telegram API Token и Chat ID
+// Telegram API Token и URL
 const TOKEN = '6614618999:AAGWioIuwEL1zNA9Z0m6ZLAbQv9g4Wgo2Mk';  // Токен бота
 const BASE_URL = `https://api.telegram.org/bot${TOKEN}/getUpdates`;
 
@@ -191,7 +191,7 @@ function drawInterfaceButtons() {
 }
 
 function drawButton(label, x, y, onClick) {
-    fill(0, 150, 255);
+        fill(0, 150, 255);
     stroke(255);
     strokeWeight(2);
     rect(x, y, 80, 30, 10);
@@ -215,7 +215,8 @@ function drawWindow(title, content) {
     textSize(18);
     textAlign(CENTER, TOP);
     text(title, width / 2, height / 2 - 150);
-        content();
+
+    content();
     drawCloseButton();
 }
 
@@ -254,11 +255,10 @@ function toggleLeaderboardWindow() {
 }
 
 function drawPlayerProfile() {
-    const playerName = document.getElementById('player-name').innerText.replace("Имя игрока: ", "");
     fill(255);
     textAlign(LEFT, TOP);
     textSize(16);
-    text(`Имя: ${playerName}`, width / 2 - 150, height / 2 - 120);
+    text(`Имя: Игрок`, width / 2 - 150, height / 2 - 120);
     text(`Уровень: ${level}`, width / 2 - 150, height / 2 - 90);
     text(`Очки: ${score}`, width / 2 - 150, height / 2 - 60);
     text(`Всего очков: ${totalScore}`, width / 2 - 150, height / 2 - 30);  // Очки за все время

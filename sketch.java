@@ -5,7 +5,7 @@ let totalClicks = 0;
 let victories = 0;
 let totalBattles = 0;
 let invitedFriends = 0;
-let totalTONEarned = 0;
+let totalTONEarned = 0; // Переменная для хранения количества TON
 let level = 1;
 let nextLevelScore = 1000;
 let clickPower = 4;
@@ -80,6 +80,7 @@ function draw() {
     if (!profileWindowOpen && !achievementsWindowOpen && !leaderboardWindowOpen) {
         drawClickerScene();
         drawInterfaceButtons();
+        drawTonAndScore();  // Отображаем TON и очки
     }
 
     if (profileWindowOpen) {
@@ -136,17 +137,6 @@ function mousePressed() {
     }
 }
 
-function touchStarted() {
-    for (let i = 0; i < touches.length && i < 8; i++) {
-        let touch = touches[i];
-        if (dist(touch.x, touch.y, circleX, circleY) < circleSize * animationScale / 2) {
-            addPoints(touches.length);
-            triggerAnimation(touch.x, touch.y, clickPower * touches.length);
-        }
-    }
-    return false;
-}
-
 function addPoints(numTouches) {
     let pointsToAdd = clickPower * numTouches;
     score += pointsToAdd;
@@ -163,6 +153,14 @@ function addPoints(numTouches) {
     checkAchievements();
 }
 
+// Новая функция для отображения TON и очков над кнопкой достижений
+function drawTonAndScore() {
+    textSize(16);
+    fill(255);
+        text(`TON: ${totalTONEarned}`, width / 2, height / 2 - 260);  // Позиционируем над кнопкой "Достижения"
+    text(`Очки: ${score}`, width / 2, height / 2 - 230);         // Позиционируем под TON
+}
+
 function triggerAnimation(x, y, value) {
     let offsetX = random(-30, 30);
     let offsetY = random(-30, 30);
@@ -171,7 +169,7 @@ function triggerAnimation(x, y, value) {
 
 function drawInterfaceButtons() {
     drawButton("Профиль", width / 2 - 180, height / 2 - 230, toggleProfileWindow);
-        drawButton("Достижения", width / 2 - 60, height / 2 - 230, toggleAchievementsWindow);
+    drawButton("Достижения", width / 2 - 60, height / 2 - 230, toggleAchievementsWindow);
     drawButton("Топ", width / 2 + 60, height / 2 - 230, toggleLeaderboardWindow);
 }
 

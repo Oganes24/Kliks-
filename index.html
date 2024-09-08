@@ -20,33 +20,28 @@
             width: 100% !important;
             height: 100% !important;
         }
-        /* Стили для окна топа игроков */
-        #leaderboardWindow {
+        /* Улучшаем стили всех окон */
+        .window {
             position: absolute;
             width: 340px;
             height: 340px;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            overflow: hidden;
-            border-radius: 20px;
+            background-color: rgba(50, 50, 50, 0.9);
+            border-radius: 15px;
             border: 2px solid white;
-            background-color: rgba(0, 0, 0, 0.8);
             z-index: 2;
-            display: none; /* По умолчанию скрыто */
+            display: none; /* По умолчанию скрыты */
         }
-        #leaderboardContent {
-            height: 100%;
-            overflow-y: auto;
-            padding: 10px;
+
+        /* Специально для окна топа игроков */
+        #leaderboardWindow {
+            overflow-y: auto; /* Прокрутка только для этого окна */
         }
-        .playerEntry {
-            white-space: nowrap;
-            color: white;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        #closeButton {
+
+        /* Стиль для кнопок */
+        .button {
             position: absolute;
             bottom: 10px;
             right: 10px;
@@ -56,13 +51,28 @@
             border-radius: 5px;
             cursor: pointer;
         }
+
+        /* Стили текста в окнах */
+        .window-title {
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            padding-top: 10px;
+        }
+
+        .playerEntry {
+            color: white;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <!-- Окно топа игроков -->
-    <div id="leaderboardWindow">
+    <div id="leaderboardWindow" class="window">
+        <div class="window-title">Топ игроков</div>
         <div id="leaderboardContent"></div>
-        <div id="closeButton">Закрыть</div>
+        <div id="closeButton" class="button">Закрыть</div>
     </div>
 
 </body>

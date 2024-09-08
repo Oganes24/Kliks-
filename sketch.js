@@ -157,7 +157,7 @@ function addPoints(numTouches) {
 function drawTonAndScore() {
     textSize(16);
     fill(255);
-    text(`TON: ${totalTONEarned}`, width / 2, height / 2 - 260);  // Позиционируем над кнопкой "Достижения"
+    text(`TON: ${totalTONEarned}`, width / 2, height / 2 - 280);  // Поднял TON выше
     text(`Очки: ${score}`, width / 2, height / 2 - 230);         // Позиционируем под TON
 }
 
@@ -168,9 +168,10 @@ function triggerAnimation(x, y, value) {
 }
 
 function drawInterfaceButtons() {
-    drawButton("Профиль", width / 2 - 180, height / 2 - 230, toggleProfileWindow);
-    drawButton("Достижения", width / 2 - 60, height / 2 - 230, toggleAchievementsWindow);
-    drawButton("Топ", width / 2 + 60, height / 2 - 230, toggleLeaderboardWindow);
+    // Сдвигаем кнопки правее
+    drawButton("Профиль", width / 2 - 120, height / 2 - 230, toggleProfileWindow);
+    drawButton("Достижения", width / 2 + 0, height / 2 - 230, toggleAchievementsWindow); // Совмещаем с текстом Очки
+    drawButton("Топ", width / 2 + 120, height / 2 - 230, toggleLeaderboardWindow);
 }
 
 function drawButton(label, x, y, onClick) {
@@ -200,7 +201,7 @@ function drawWindow(title, content) {
     text(title, width / 2, height / 2 - 150);
 
     content();
-    drawCloseButton();
+    drawCloseButton(); // Добавляем кнопку закрытия
 }
 
 function drawCloseButton() {

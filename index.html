@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1, minimum-scale=1">
     <title>Clicker Game</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="sketch.js"></script>
     <style>
         body, html {
             margin: 0;
@@ -12,68 +13,74 @@
             height: 100%;
             overflow: hidden;
             width: 100%;
-            background-color: black; /* Черный фон для всего окна */
         }
         canvas {
             display: block;
             width: 100% !important;
             height: 100% !important;
         }
-
-        /* Стили для окна топа игроков */
+        #player-name {
+            color: white;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 20px;
+            z-index: 1;
+        }
         #leaderboardWindow {
             position: absolute;
-            width: 340px;
-            height: 340px;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            overflow-y: auto; /* Прокрутка */
-            background-color: rgba(50, 50, 50, 0.9);
-            border-radius: 15px;
-            border: 2px solid white;
-            z-index: 2;
-            display: none; /* По умолчанию скрыто */
+            width: 350px;
+            height: 400px;
+            overflow-y: auto;
+            background-color: rgba(50, 50, 50, 0.8);
+            border-radius: 20px;
+            padding: 20px;
+            display: none;
+            z-index: 10;
         }
-
-        #closeButton {
+        .playerEntry {
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            padding: 5px;
+        }
+        #leaderboardContent {
+            height: 100%;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.5) transparent;
+        }
+        #leaderboardContent::-webkit-scrollbar {
+            width: 8px;
+        }
+        #leaderboardContent::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 10px;
+        }
+        #leaderboardContent::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+        .close-button {
             position: absolute;
-            bottom: 10px;
             right: 10px;
+            bottom: 10px;
             padding: 5px 10px;
             background-color: red;
             color: white;
             border-radius: 5px;
             cursor: pointer;
-        }
-
-        .window-title {
-            color: white;
-            font-size: 24px;
             text-align: center;
-            padding-top: 10px;
-        }
-
-        .playerEntry {
-            color: white;
-            font-size: 14px;
-            margin-bottom: 10px;
         }
     </style>
 </head>
 <body>
-    <!-- Окно топа игроков -->
+    <div id="player-name">Имя игрока: Игрок</div>
     <div id="leaderboardWindow">
-        <div class="window-title">Топ игроков</div>
         <div id="leaderboardContent"></div>
-        <div id="closeButton">Закрыть</div>
+        <div class="close-button" onclick="closeAllWindows()">Закрыть</div>
     </div>
-
-    <script>
-        // Логика для закрытия окна топа
-        document.getElementById('closeButton').addEventListener('click', function() {
-            document.getElementById('leaderboardWindow').style.display = 'none';
-        });
-    </script>
 </body>
 </html>
